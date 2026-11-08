@@ -1,0 +1,17 @@
+{
+	"required": true,
+	"package": "shared_health.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"ServerPlayerMixin",
+		"LivingEntityMixin",
+		"PlayerListMixin",
+		"ScoreboardMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

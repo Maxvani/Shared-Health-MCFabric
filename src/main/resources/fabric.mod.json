@@ -1,0 +1,35 @@
+{
+	"schemaVersion": 1,
+	"id": "shared_health",
+	"version": "${version}",
+	"name": "Shared Health",
+	"description": "Shared Health",
+	"authors": [
+		"Maxvani",
+		"MightyMitta"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/shared-health/icon.png",
+	"environment": "server",
+	"entrypoints": {
+		"main": [
+			"shared_health.SharedHealth"
+		],
+		"fabric-datagen": [
+			"shared_health.SharedHealthDataGenerator"
+		]
+	},
+	"mixins": [
+		"shared-health.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.20.1",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
