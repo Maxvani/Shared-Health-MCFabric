@@ -1,10 +1,12 @@
 package shared_health.manager;
 
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.scores.PlayerTeam;
 import shared_health.damage_type.ModDamageTypes;
 import shared_health.data_type.SharedHealthData;
@@ -45,7 +47,7 @@ public class SharedHealthManager {
 
         for(String name : team.getPlayers()) {
             ServerPlayer p = level.getServer().getPlayerList().getPlayerByName(name);
-            if(p == null) return;
+            if(p == null || player.getName().getString().equals(name)) continue;
             killPlayer(p);
             resetTeam(level.getServer(), team);
         }
@@ -121,7 +123,8 @@ public class SharedHealthManager {
         return new DamageSource(
                 level.registryAccess()
                         .lookupOrThrow(Registries.DAMAGE_TYPE)
-                        .getOrThrow(ModDamageTypes.SHARED_DAMAGE));
+                        .getOrThrow(ModDamageTypes.SHARED_DAMAGE),
+                (Entity)null);
     }
 
     private static void dealDamage(ServerPlayer player, float amount) {
