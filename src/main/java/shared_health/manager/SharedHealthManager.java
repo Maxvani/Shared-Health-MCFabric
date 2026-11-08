@@ -96,8 +96,10 @@ public class SharedHealthManager {
     public static void syncAll(ServerPlayer player) {
         PlayerTeam team = player.getTeam();
         if(team == null) return;
+
         SharedHealthTeamData teamData = SharedHealthData.get(player.level().getServer()).getTeamData(player.getTeam());
         if(teamData == null) return;
+
         syncHealth(player, teamData);
         syncFood(player, teamData);
         syncSaturation(player, teamData);
