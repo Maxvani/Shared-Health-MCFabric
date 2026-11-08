@@ -12,7 +12,7 @@ import shared_health.SharedHealth;
 import shared_health.manager.SharedHealthManager;
 
 @Mixin(Scoreboard.class)
-public class ScoreboardMixin {
+public abstract class ScoreboardMixin {
 
     @Inject(
             method = "addPlayerToTeam",

@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import shared_health.manager.SharedHealthManager;
 
 @Mixin(PlayerList.class)
-public class PlayerListMixin {
+public abstract class PlayerListMixin {
     @Inject(
             method = "placeNewPlayer",
             at = @At("TAIL")
