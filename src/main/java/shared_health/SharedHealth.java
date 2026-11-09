@@ -8,6 +8,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import shared_health.command.ModCommands;
 
 public class SharedHealth implements ModInitializer {
 	public static final String MOD_ID = "shared_health";
@@ -30,6 +31,8 @@ public class SharedHealth implements ModInitializer {
 		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
 			serverInstance = null; // Prevent memory leaks
 		});
+
+		ModCommands.register();
 	}
 
 	public static Identifier id(String path) {

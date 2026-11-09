@@ -1,13 +1,13 @@
 package shared_health.manager;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.scores.PlayerTeam;
+import shared_health.SharedHealth;
 import shared_health.damage_type.ModDamageTypes;
 import shared_health.data_type.SharedHealthData;
 import shared_health.model.SharedHealthTeamData;
@@ -20,7 +20,7 @@ public class SharedHealthManager {
         ServerLevel level = player.level();
         PlayerTeam team = player.getTeam();
 
-        if(team == null) return;
+        if(team == null || !shouldSync(team)) return;
 
         SharedHealthData teamData = SharedHealthData.get(level.getServer());
         teamData.setHealth(team, player.getHealth());
@@ -32,7 +32,7 @@ public class SharedHealthManager {
         PlayerTeam team = player.getTeam();
         ServerLevel level = player.level();
 
-        if(team == null) return;
+        if(team == null || !shouldSync(team)) return;
 
         SharedHealthData teamData = SharedHealthData.get(level.getServer());
         teamData.setHealth(team, player.getHealth());
@@ -43,7 +43,7 @@ public class SharedHealthManager {
     public static void onDeath(ServerPlayer player) {
         PlayerTeam team = player.getTeam();
         ServerLevel level = player.level();
-        if(team == null) return;
+        if(team == null || !shouldSync(team)) return;
 
         for(String name : team.getPlayers()) {
             ServerPlayer p = level.getServer().getPlayerList().getPlayerByName(name);
@@ -57,7 +57,7 @@ public class SharedHealthManager {
         PlayerTeam team = player.getTeam();
         ServerLevel level = player.level();
 
-        if(team == null) return;
+        if(team == null || !shouldSync(team)) return;
 
         SharedHealthData teamData = SharedHealthData.get(level.getServer());
         teamData.setFood(team, player.getFoodData().getFoodLevel());
@@ -69,7 +69,7 @@ public class SharedHealthManager {
         PlayerTeam team = player.getTeam();
         ServerLevel level = player.level();
 
-        if(team == null) return;
+        if(team == null || !shouldSync(team)) return;
 
         SharedHealthData teamData = SharedHealthData.get(level.getServer());
         teamData.setSaturation(team, player.getFoodData().getSaturationLevel());
@@ -134,5 +134,10 @@ public class SharedHealthManager {
 
     private static void heal(ServerPlayer player, float amount) {
         player.setHealth(player.getHealth() + amount);
+    }
+
+    private static boolean shouldSync(PlayerTeam team) {
+        SharedHealthData data = SharedHealthData.get(SharedHealth.getServerInstance());
+        return data.getTeamData(team).enabled;
     }
 }

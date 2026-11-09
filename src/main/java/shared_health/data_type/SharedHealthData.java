@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.scores.PlayerTeam;
+import shared_health.SharedHealth;
 import shared_health.model.SharedHealthTeamData;
 
 import java.util.HashMap;
@@ -27,7 +28,7 @@ public class SharedHealthData extends SavedData {
     }
 
     public SharedHealthTeamData getTeamData(String teamName) {
-        if(!teamValues.containsKey(teamName)) return null;
+        ensureTeamExists(teamName);
         return teamValues.get(teamName);
     }
 
@@ -84,8 +85,38 @@ public class SharedHealthData extends SavedData {
         setSaturation(team.getName(), saturation);
     }
 
-    private void ensureTeamExists(String teamName) {
+    public void setEnabled(String teamName, boolean enabled) {
+        if(!teamExists(teamName) && !enabled) return;
+        ensureTeamExists(teamName);
+
+        SharedHealthTeamData data = getTeamData(teamName);
+        if(data == null) return;
+
+        data.enabled = enabled;
+        setDirty();
+    }
+
+    public void setEnabled(PlayerTeam team, boolean enabled) {
+        setEnabled(team.getName(), enabled);
+    }
+
+    private void ensureTeamExists(String teamName) throws IllegalArgumentException {
+        MinecraftServer server = SharedHealth.getServerInstance();
+        PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
+        if(team == null) throw new IllegalArgumentException();
         if(teamValues.containsKey(teamName)) return;
         teamValues.put(teamName, new SharedHealthTeamData());
+    }
+
+    private void ensureTeamExists(PlayerTeam team) {
+        ensureTeamExists(team.getName());
+    }
+
+    private boolean teamExists(String teamName) {
+        return teamValues.containsKey(teamName);
+    }
+
+    private boolean teamExists(PlayerTeam team) {
+        return teamExists(team.getName());
     }
 }
