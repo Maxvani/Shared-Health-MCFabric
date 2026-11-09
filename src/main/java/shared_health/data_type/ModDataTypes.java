@@ -7,7 +7,7 @@ import shared_health.SharedHealth;
 public class ModDataTypes {
     public static final SavedDataType<SharedHealthData> SHARED_HEALTH_DATA_TYPE =
             new SavedDataType<>(
-                    Identifier.fromNamespaceAndPath(SharedHealth.MOD_ID, "shared_health"),
+                    SharedHealth.id("shared_health"),
                     SharedHealthData::new,
                     SharedHealthData.CODEC,
                     null

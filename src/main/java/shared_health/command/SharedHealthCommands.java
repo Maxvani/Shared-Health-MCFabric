@@ -6,7 +6,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.TeamArgument;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.scores.PlayerTeam;
 import shared_health.data_type.SharedHealthData;
@@ -25,6 +24,9 @@ public class SharedHealthCommands {
                         .then(Commands.argument("team", TeamArgument.team())
                                 .then(Commands.literal("disable")
                                         .executes(SharedHealthCommands::disableTeam)))
+
+                        .then(Commands.argument("team", TeamArgument.team())
+                                .executes(SharedHealthCommands::sendStatusMessage))
         );
     }
 
@@ -45,10 +47,18 @@ public class SharedHealthCommands {
     }
 
     private static void sendSuccessMessage(CommandContext<CommandSourceStack> context, PlayerTeam team, boolean enabled) {
-        String message = "Health sharing successfully " + (enabled ? "enabled" : "disabled") + " for team: " + team.getName();
-        context.getSource().sendSuccess(
-                () -> Component.literal(message),
-                true
-        );
+        ModCommands.sendSuccessMessage(context, "Health sharing successfully " + (enabled ? "enabled" : "disabled") + " for team: " + team.getName());
+    }
+
+    private static int sendStatusMessage(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        SharedHealthData data = SharedHealthData.get(context.getSource().getServer());
+        PlayerTeam team = TeamArgument.getTeam(context, "team");
+        boolean enabled = data.getTeamData(team).enabled;
+
+        ModCommands.sendSuccessMessage(
+                context,
+                "Health sharing is currently " + (enabled ? "enabled" : "disabled") + " for team: " + team.getName(),
+                false);
+        return 1;
     }
 }
