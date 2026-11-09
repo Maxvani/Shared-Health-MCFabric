@@ -27,7 +27,7 @@ public abstract class ScoreboardMixin {
         if(server == null) return;
         ServerPlayer p = server.getPlayerList().getPlayerByName(player);
         if(p == null) return;
-        SharedHealthManager.syncAll(p);
+        SharedHealthManager.syncPlayer(p);
     }
 
     @Inject(

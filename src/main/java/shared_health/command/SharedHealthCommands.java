@@ -9,6 +9,7 @@ import net.minecraft.commands.arguments.TeamArgument;
 import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.scores.PlayerTeam;
 import shared_health.data_type.SharedHealthData;
+import shared_health.manager.SharedHealthManager;
 
 public class SharedHealthCommands {
     public static void register(
@@ -39,7 +40,9 @@ public class SharedHealthCommands {
     }
 
     private static int enableTeam(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        return setTeamEnabled(context, true);
+        int res = setTeamEnabled(context, true);
+        SharedHealthManager.syncTeam(context.getSource().getLevel(), TeamArgument.getTeam(context, "team"), null);
+        return res;
     }
 
     private static int disableTeam(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

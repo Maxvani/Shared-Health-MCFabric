@@ -22,9 +22,20 @@ public abstract class ServerPlayerMixin {
 
     @Inject(
             method = "hurtServer",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    private void beforeDamage(ServerLevel level, DamageSource source, float damage, CallbackInfoReturnable<Boolean> cir) {
+        ServerPlayer player = (ServerPlayer)(Object)this;
+        if(player.isDeadOrDying()) cir.cancel();
+    }
+
+    @Inject(
+            method = "hurtServer",
             at = @At("RETURN")
     )
     private void onDamage(ServerLevel level, DamageSource source, float damage, CallbackInfoReturnable<Boolean> cir) {
+        ServerPlayer player = (ServerPlayer)(Object)this;
         SharedHealthManager.onTakeDamage((ServerPlayer)(Object)this, source);
     }
 
@@ -33,6 +44,7 @@ public abstract class ServerPlayerMixin {
             at = @At("RETURN")
     )
     private void onDeath(DamageSource source, CallbackInfo ci) {
+        ServerPlayer player = (ServerPlayer)(Object)this;
         SharedHealthManager.onDeath((ServerPlayer)(Object)this);
     }
 
