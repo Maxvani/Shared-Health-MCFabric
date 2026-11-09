@@ -36,6 +36,6 @@ public abstract class ScoreboardMixin {
     )
     private void deleteEntryOnTeamDeletion(PlayerTeam team, CallbackInfo ci) {
         SharedHealthData data = SharedHealthData.get(SharedHealth.getServerInstance());
-        data.setEnabled(team, false);
+        data.removeTeam(team);
     }
 }

@@ -55,6 +55,16 @@ public class SharedHealthData extends SavedData {
         setDirty();
     }
 
+    public void removeTeam(String teamName) {
+        if(!teamExists(teamName)) return;
+        teamValues.remove(teamName);
+        setDirty();
+    }
+
+    public void removeTeam(PlayerTeam team) {
+        removeTeam(team.getName());
+    }
+
     public void setHealth(PlayerTeam team, float health) {
         setHealth(team.getName(), health);
     }
@@ -103,8 +113,10 @@ public class SharedHealthData extends SavedData {
     private void ensureTeamExists(String teamName) throws IllegalArgumentException {
         MinecraftServer server = SharedHealth.getServerInstance();
         PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
+
         if(team == null) throw new IllegalArgumentException();
         if(teamValues.containsKey(teamName)) return;
+
         teamValues.put(teamName, new SharedHealthTeamData());
     }
 
