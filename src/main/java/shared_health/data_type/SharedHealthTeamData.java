@@ -1,4 +1,4 @@
-package shared_health.model;
+package shared_health.data_type;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -17,7 +17,7 @@ public class SharedHealthTeamData {
     public float health = 20.0f;
     public int food = 20;
     public float saturation = 20.0f;
-    public boolean enabled = true;
+    public boolean enabled = false;
 
     public SharedHealthTeamData() {}
 
