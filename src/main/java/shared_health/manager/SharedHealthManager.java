@@ -1,13 +1,13 @@
 package shared_health.manager;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.scores.PlayerTeam;
+import shared_health.SharedHealth;
 import shared_health.damage_type.ModDamageTypes;
 import shared_health.data_type.SharedHealthData;
 import shared_health.model.SharedHealthTeamData;
@@ -15,12 +15,12 @@ import shared_health.model.SharedHealthTeamData;
 public class SharedHealthManager {
     public static void onTakeDamage(ServerPlayer player, DamageSource source) {
         if(source.is(ModDamageTypes.SHARED_DAMAGE)) return;
-        if(player.getHealth() <= 0) return;
+        if(player.getHealth() <= 0 || player.isDeadOrDying()) return;
 
         ServerLevel level = player.level();
         PlayerTeam team = player.getTeam();
 
-        if(team == null) return;
+        if(!shouldSync(team)) return;
 
         SharedHealthData teamData = SharedHealthData.get(level.getServer());
         teamData.setHealth(team, player.getHealth());
@@ -32,7 +32,7 @@ public class SharedHealthManager {
         PlayerTeam team = player.getTeam();
         ServerLevel level = player.level();
 
-        if(team == null) return;
+        if(!shouldSync(team)) return;
 
         SharedHealthData teamData = SharedHealthData.get(level.getServer());
         teamData.setHealth(team, player.getHealth());
@@ -43,7 +43,7 @@ public class SharedHealthManager {
     public static void onDeath(ServerPlayer player) {
         PlayerTeam team = player.getTeam();
         ServerLevel level = player.level();
-        if(team == null) return;
+        if(!shouldSync(team)) return;
 
         for(String name : team.getPlayers()) {
             ServerPlayer p = level.getServer().getPlayerList().getPlayerByName(name);
@@ -57,7 +57,7 @@ public class SharedHealthManager {
         PlayerTeam team = player.getTeam();
         ServerLevel level = player.level();
 
-        if(team == null) return;
+        if(!shouldSync(team)) return;
 
         SharedHealthData teamData = SharedHealthData.get(level.getServer());
         teamData.setFood(team, player.getFoodData().getFoodLevel());
@@ -69,7 +69,7 @@ public class SharedHealthManager {
         PlayerTeam team = player.getTeam();
         ServerLevel level = player.level();
 
-        if(team == null) return;
+        if(!shouldSync(team)) return;
 
         SharedHealthData teamData = SharedHealthData.get(level.getServer());
         teamData.setSaturation(team, player.getFoodData().getSaturationLevel());
@@ -95,9 +95,9 @@ public class SharedHealthManager {
         player.getFoodData().setSaturation(data.saturation);
     }
 
-    public static void syncAll(ServerPlayer player) {
+    public static void syncPlayer(ServerPlayer player) {
         PlayerTeam team = player.getTeam();
-        if(team == null) return;
+        if(team == null || player.isDeadOrDying() || player.getHealth() <= 0) return;
 
         SharedHealthTeamData teamData = SharedHealthData.get(player.level().getServer()).getTeamData(player.getTeam());
         if(teamData == null) return;
@@ -107,16 +107,16 @@ public class SharedHealthManager {
         syncSaturation(player, teamData);
     }
 
-    private static void resetTeam(MinecraftServer server, PlayerTeam team) {
-        SharedHealthData.get(server).setTeamData(team, new SharedHealthTeamData());
-    }
-
-    private static void syncTeam(ServerLevel level, PlayerTeam team, ServerPlayer triggeredBy) {
+    public static void syncTeam(ServerLevel level, PlayerTeam team, ServerPlayer triggeredBy) {
         for(String name : team.getPlayers()) {
             ServerPlayer p = level.getServer().getPlayerList().getPlayerByName(name);
-            if(p == null || triggeredBy.getName().getString().equals(name)) continue;
-            syncAll(p);
+            if(p == null || (triggeredBy != null && triggeredBy.getName().getString().equals(name))) continue;
+            syncPlayer(p);
         }
+    }
+
+    private static void resetTeam(MinecraftServer server, PlayerTeam team) {
+        SharedHealthData.get(server).setTeamData(team, new SharedHealthTeamData());
     }
 
     private static DamageSource getDamageSource(ServerLevel level) {
@@ -128,11 +128,18 @@ public class SharedHealthManager {
     }
 
     private static void dealDamage(ServerPlayer player, float amount) {
+        if(player.isDeadOrDying()) return;
         DamageSource source = getDamageSource(player.level());
         player.hurtServer(player.level(), source, amount);
     }
 
     private static void heal(ServerPlayer player, float amount) {
         player.setHealth(player.getHealth() + amount);
+    }
+
+    private static boolean shouldSync(PlayerTeam team) {
+        if(team == null) return false;
+        SharedHealthData data = SharedHealthData.get(SharedHealth.getServerInstance());
+        return data.getTeamData(team).enabled;
     }
 }

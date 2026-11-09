@@ -19,6 +19,6 @@ public abstract class PlayerListMixin {
             net.minecraft.network.Connection connection, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci
     )
     {
-        SharedHealthManager.syncAll(player);
+        SharedHealthManager.syncPlayer(player);
     }
 }
