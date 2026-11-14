@@ -19,24 +19,25 @@ public class SharedHealthCommands {
         dispatcher.register(
                 Commands.literal("sharedhealth")
                         .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_ADMIN))
-                        .then(Commands.literal("team"))
+                        .then(Commands.literal("team")
                             .then(Commands.argument("team", TeamArgument.team())
                                 .then(Commands.literal("enable")
-                                    .executes(SharedHealthCommands::enableTeam)))
+                                    .executes(SharedHealthCommands::enableTeam))))
 
-                        .then(Commands.literal("team"))
+                        .then(Commands.literal("team")
                             .then(Commands.argument("team", TeamArgument.team())
                                 .then(Commands.literal("disable")
-                                    .executes(SharedHealthCommands::disableTeam)))
+                                    .executes(SharedHealthCommands::disableTeam))))
 
-                        .then(Commands.literal("team"))
+                        .then(Commands.literal("team")
                             .then(Commands.argument("team", TeamArgument.team())
                                 .then(Commands.literal("toggle")
-                                    .executes(SharedHealthCommands::toggleTeam)))
+                                    .executes(SharedHealthCommands::toggleTeam))))
 
-                        .then(Commands.literal("team"))
+                        .then(Commands.literal("team")
                             .then(Commands.argument("team", TeamArgument.team())
-                                .executes(SharedHealthCommands::sendStatusMessage))
+                                    .then(Commands.literal("status"))
+                                        .executes(SharedHealthCommands::sendStatusMessage)))
 
                         .then(Commands.literal("player")
                             .then(Commands.literal("unmark")
