@@ -36,8 +36,8 @@ public class SharedHealthCommands {
 
                         .then(Commands.literal("team")
                             .then(Commands.argument("team", TeamArgument.team())
-                                    .then(Commands.literal("status"))
-                                        .executes(SharedHealthCommands::sendStatusMessage)))
+                                    .then(Commands.literal("status")
+                                        .executes(SharedHealthCommands::sendStatusMessage))))
 
                         .then(Commands.literal("player")
                             .then(Commands.literal("unmark")
