@@ -158,7 +158,8 @@ public class SharedHealthManager {
     }
 
     private static void resetTeam(MinecraftServer server, PlayerTeam team) {
-        SharedHealthData.get(server).setTeamData(team, new SharedHealthTeamData());
+        SharedHealthTeamData data = SharedHealthData.get(server).getTeamData(team);
+        data.reset();
     }
 
     private static DamageSource getDamageSource(ServerLevel level) {

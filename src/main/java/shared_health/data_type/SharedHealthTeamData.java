@@ -14,6 +14,10 @@ public class SharedHealthTeamData {
             ).apply(instance, SharedHealthTeamData::new)
     );
 
+    private static final float BASE_HEALTH = 20.0f;
+    private static final int BASE_FOOD = 20;
+    private static final float BASE_SATURATION = 20.0f;
+
     public float health = 20.0f;
     public int food = 20;
     public float saturation = 20.0f;
@@ -26,5 +30,11 @@ public class SharedHealthTeamData {
         this.food = food;
         this.saturation = saturation;
         this.enabled = enabled;
+    }
+
+    public void reset() {
+        health = BASE_HEALTH;
+        food  = BASE_FOOD;
+        saturation = BASE_SATURATION;
     }
 }
