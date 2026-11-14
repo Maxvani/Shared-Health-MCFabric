@@ -1,6 +1,7 @@
 package shared_health.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
@@ -8,8 +9,10 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.TeamArgument;
 import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.scores.PlayerTeam;
+import shared_health.SharedHealth;
 import shared_health.data_type.SharedHealthData;
 import shared_health.manager.SharedHealthManager;
+
 
 public class SharedHealthCommands {
     public static void register(
@@ -17,17 +20,35 @@ public class SharedHealthCommands {
         dispatcher.register(
                 Commands.literal("sharedhealth")
                         .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_ADMIN))
-
-                        .then(Commands.argument("team", TeamArgument.team())
+                        .then(Commands.literal("team")
+                            .then(Commands.argument("team", TeamArgument.team())
                                 .then(Commands.literal("enable")
-                                        .executes(SharedHealthCommands::enableTeam)))
+                                    .executes(SharedHealthCommands::enableTeam))))
 
-                        .then(Commands.argument("team", TeamArgument.team())
+                        .then(Commands.literal("team")
+                            .then(Commands.argument("team", TeamArgument.team())
                                 .then(Commands.literal("disable")
-                                        .executes(SharedHealthCommands::disableTeam)))
+                                    .executes(SharedHealthCommands::disableTeam))))
 
-                        .then(Commands.argument("team", TeamArgument.team())
-                                .executes(SharedHealthCommands::sendStatusMessage))
+                        .then(Commands.literal("team")
+                            .then(Commands.argument("team", TeamArgument.team())
+                                .then(Commands.literal("toggle")
+                                    .executes(SharedHealthCommands::toggleTeam))))
+
+                        .then(Commands.literal("team")
+                            .then(Commands.argument("team", TeamArgument.team())
+                                    .then(Commands.literal("status")
+                                        .executes(SharedHealthCommands::sendStatusMessage))))
+
+                        .then(Commands.literal("player")
+                            .then(Commands.literal("unmark")
+                                .then(Commands.argument("player", StringArgumentType.word())
+                                    .executes(SharedHealthCommands::unmarkPlayer))))
+
+                        .then(Commands.literal("player")
+                                .then(Commands.literal("mark")
+                                        .then(Commands.argument("player", StringArgumentType.word())
+                                                .executes(SharedHealthCommands::markPlayer))))
         );
     }
 
@@ -49,6 +70,36 @@ public class SharedHealthCommands {
         return setTeamEnabled(context, false);
     }
 
+    private static int toggleTeam(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        SharedHealthData data = SharedHealthData.get(context.getSource().getServer());
+        PlayerTeam team = TeamArgument.getTeam(context, "team");
+        return setTeamEnabled(context, !data.getTeamData(team).enabled);
+    }
+
+    private static int unmarkPlayer(CommandContext<CommandSourceStack> context) {
+        SharedHealthData data = SharedHealthData.get(context.getSource().getServer());
+        String playerName = StringArgumentType.getString(context, "player");
+        if(!playerIsMarked(playerName)) {
+            ModCommands.sendFailureMessage(context, "Player \"" + playerName + "\" is not marked!");
+            return 0;
+        }
+        data.unmarkPlayer(playerName);
+        ModCommands.sendSuccessMessage(context, "Successfully unmarked player: " + playerName);
+        return 1;
+    }
+
+    private static int markPlayer(CommandContext<CommandSourceStack> context) {
+        SharedHealthData data = SharedHealthData.get(context.getSource().getServer());
+        String playerName = StringArgumentType.getString(context, "player");
+        if(playerIsMarked(playerName)) {
+            ModCommands.sendFailureMessage(context, "Player \"" + playerName + "\" is already marked!");
+            return 0;
+        }
+        data.markPlayer(playerName);
+        ModCommands.sendSuccessMessage(context, "Successfully marked player: " + playerName);
+        return 1;
+    }
+
     private static void sendSuccessMessage(CommandContext<CommandSourceStack> context, PlayerTeam team, boolean enabled) {
         ModCommands.sendSuccessMessage(context, "Health sharing successfully " + (enabled ? "enabled" : "disabled") + " for team: " + team.getName());
     }
@@ -63,5 +114,10 @@ public class SharedHealthCommands {
                 "Health sharing is currently " + (enabled ? "enabled" : "disabled") + " for team: " + team.getName(),
                 false);
         return 1;
+    }
+
+    private static boolean playerIsMarked(String playerName) {
+        SharedHealthData data = SharedHealthData.get(SharedHealth.getServerInstance());
+        return data.playerIsMarked(playerName);
     }
 }

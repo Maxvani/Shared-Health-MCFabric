@@ -1,21 +1,33 @@
 package shared_health.data_type;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.scores.PlayerTeam;
 import shared_health.SharedHealth;
-import shared_health.model.SharedHealthTeamData;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class SharedHealthData extends SavedData {
     private final Map<String, SharedHealthTeamData> teamValues = new HashMap<>();
+    private final ArrayList<String> markedPlayers = new ArrayList<>();
 
     public static final Codec<SharedHealthData> CODEC =
-            Codec.unboundedMap(Codec.STRING, SharedHealthTeamData.CODEC)
-                    .xmap(SharedHealthData::new, data -> data.teamValues);
+            RecordCodecBuilder.create(instance ->
+                    instance.group(
+                            Codec.unboundedMap(
+                                            Codec.STRING,
+                                            SharedHealthTeamData.CODEC
+                                    ).fieldOf("team_values")
+                                    .forGetter(data -> data.teamValues),
+
+                            Codec.STRING.listOf()
+                                    .fieldOf("marked_players")
+                                    .forGetter(data -> data.markedPlayers)
+                    ).apply(instance, SharedHealthData::new)
+            );
 
     public static SharedHealthData get(MinecraftServer server) {
         return server.getDataStorage().computeIfAbsent(ModDataTypes.SHARED_HEALTH_DATA_TYPE);
@@ -23,8 +35,9 @@ public class SharedHealthData extends SavedData {
 
     public SharedHealthData() {}
 
-    public SharedHealthData(Map<String, SharedHealthTeamData> teamValues) {
+    public SharedHealthData(Map<String, SharedHealthTeamData> teamValues, List<String> markedPlayers) {
         this.teamValues.putAll(teamValues);
+        this.markedPlayers.addAll(markedPlayers);
     }
 
     public SharedHealthTeamData getTeamData(String teamName) {
@@ -110,6 +123,30 @@ public class SharedHealthData extends SavedData {
         setEnabled(team.getName(), enabled);
     }
 
+    public boolean playerIsMarked(String playerName) {
+        return markedPlayers.contains(playerName);
+    }
+
+    public boolean playerIsMarked(ServerPlayer player) {
+        return playerIsMarked(player.getName().getString());
+    }
+
+    public void markPlayer(String playerName) {
+        if(playerIsMarked(playerName)) return;
+        markedPlayers.add(playerName);
+        setDirty();
+    }
+
+    public void unmarkPlayer(String playerName) {
+        if(!playerIsMarked(playerName)) return;
+        markedPlayers.remove(playerName);
+        setDirty();
+    }
+
+    public void unmarkPlayer(ServerPlayer player) {
+        unmarkPlayer(player.getName().getString());
+    }
+
     private void ensureTeamExists(String teamName) throws IllegalArgumentException {
         MinecraftServer server = SharedHealth.getServerInstance();
         PlayerTeam team = server.getScoreboard().getPlayerTeam(teamName);
@@ -120,15 +157,7 @@ public class SharedHealthData extends SavedData {
         teamValues.put(teamName, new SharedHealthTeamData());
     }
 
-    private void ensureTeamExists(PlayerTeam team) {
-        ensureTeamExists(team.getName());
-    }
-
     private boolean teamExists(String teamName) {
         return teamValues.containsKey(teamName);
-    }
-
-    private boolean teamExists(PlayerTeam team) {
-        return teamExists(team.getName());
     }
 }

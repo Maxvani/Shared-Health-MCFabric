@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import shared_health.SharedHealth;
 import shared_health.data_type.SharedHealthData;
+import shared_health.helper.ServerPlayerUtil;
 import shared_health.manager.SharedHealthManager;
 
 @Mixin(Scoreboard.class)
@@ -28,6 +29,26 @@ public abstract class ScoreboardMixin {
         ServerPlayer p = server.getPlayerList().getPlayerByName(player);
         if(p == null) return;
         SharedHealthManager.syncPlayer(p);
+    }
+
+    @Inject(
+            method = "removePlayerFromTeam(Ljava/lang/String;)Z",
+            at = @At("TAIL")
+    )
+    private void onPlayerLeaveTeam(String player, CallbackInfoReturnable<Boolean> cir) {
+        ServerPlayer p = ServerPlayerUtil.getPlayerByName(player);
+        if(p == null) return;
+        SharedHealthManager.resetPlayer(p);
+    }
+
+    @Inject(
+            method = "removePlayerFromTeam(Ljava/lang/String;Lnet/minecraft/world/scores/PlayerTeam;)V",
+            at = @At("TAIL")
+    )
+    private void onPlayerLeaveTeam(String player, PlayerTeam team, CallbackInfo ci) {
+        ServerPlayer p = ServerPlayerUtil.getPlayerByName(player);
+        if(p == null) return;
+        SharedHealthManager.resetPlayer(p);
     }
 
     @Inject(
