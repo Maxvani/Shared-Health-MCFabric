@@ -9,6 +9,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.TeamArgument;
 import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.scores.PlayerTeam;
+import shared_health.SharedHealth;
 import shared_health.data_type.SharedHealthData;
 import shared_health.manager.SharedHealthManager;
 
@@ -43,6 +44,11 @@ public class SharedHealthCommands {
                             .then(Commands.literal("unmark")
                                 .then(Commands.argument("player", StringArgumentType.word())
                                     .executes(SharedHealthCommands::unmarkPlayer))))
+
+                        .then(Commands.literal("player")
+                                .then(Commands.literal("mark")
+                                        .then(Commands.argument("player", StringArgumentType.word())
+                                                .executes(SharedHealthCommands::markPlayer))))
         );
     }
 
@@ -73,8 +79,24 @@ public class SharedHealthCommands {
     private static int unmarkPlayer(CommandContext<CommandSourceStack> context) {
         SharedHealthData data = SharedHealthData.get(context.getSource().getServer());
         String playerName = StringArgumentType.getString(context, "player");
+        if(!playerIsMarked(playerName)) {
+            ModCommands.sendFailureMessage(context, "Player \"" + playerName + "\" is not marked!");
+            return 0;
+        }
         data.unmarkPlayer(playerName);
         ModCommands.sendSuccessMessage(context, "Successfully unmarked player: " + playerName);
+        return 1;
+    }
+
+    private static int markPlayer(CommandContext<CommandSourceStack> context) {
+        SharedHealthData data = SharedHealthData.get(context.getSource().getServer());
+        String playerName = StringArgumentType.getString(context, "player");
+        if(playerIsMarked(playerName)) {
+            ModCommands.sendFailureMessage(context, "Player \"" + playerName + "\" is already marked!");
+            return 0;
+        }
+        data.markPlayer(playerName);
+        ModCommands.sendSuccessMessage(context, "Successfully marked player: " + playerName);
         return 1;
     }
 
@@ -92,5 +114,10 @@ public class SharedHealthCommands {
                 "Health sharing is currently " + (enabled ? "enabled" : "disabled") + " for team: " + team.getName(),
                 false);
         return 1;
+    }
+
+    private static boolean playerIsMarked(String playerName) {
+        SharedHealthData data = SharedHealthData.get(SharedHealth.getServerInstance());
+        return data.playerIsMarked(playerName);
     }
 }

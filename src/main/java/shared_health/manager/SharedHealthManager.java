@@ -90,6 +90,8 @@ public class SharedHealthManager {
             unmarkPlayer(player);
             return;
         }
+        SharedHealthTeamData teamData = data.getTeamData(team);
+        if(!teamData.enabled) return;
 
         killPlayer(player);
         if(ServerPlayerUtil.isDead(player)) {

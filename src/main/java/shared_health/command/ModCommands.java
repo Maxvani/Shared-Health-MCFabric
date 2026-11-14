@@ -20,6 +20,12 @@ public class ModCommands {
         );
     }
 
+    public static void sendFailureMessage(CommandContext<CommandSourceStack> context, String message) {
+        context.getSource().sendFailure(
+                Component.literal(message)
+        );
+    }
+
     public static void sendSuccessMessage(CommandContext<CommandSourceStack> context, String message) {
         sendSuccessMessage(context, message, true);
     }
